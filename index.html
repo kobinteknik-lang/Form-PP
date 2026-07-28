@@ -121,7 +121,7 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
                     <tr>
                         <td class="text-center font-monospace">1</td>
                         <td><input type="text" class="kode" list="masterKodeList" placeholder="Ketik Kode/Nama"></td>
-                        <td><input type="text" class="nama" placeholder="Nama item barang"></td>
+                        <td><input type="text" class="nama" list="masterKodeList" placeholder="Nama item barang"></td>
                         <td><input type="number" class="qty" value="1" min="1"></td>
                         <td><input type="text" class="satuan" placeholder="Pcs/Set"></td>
                         <td><input type="text" class="stock" placeholder="0"></td>
@@ -134,8 +134,11 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
             </table>
         </div>
 
-        <div class="mb-4 d-flex justify-content-between">
-            <button type="button" id="addRow" class="btn btn-light btn-sm text-primary border fw-semibold"><i class="bi bi-plus-lg me-1"></i> Tambah Baris</button>
+        <div class="mb-4 d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-2">
+                <button type="button" id="addRow" class="btn btn-light btn-sm text-primary border fw-semibold"><i class="bi bi-plus-lg me-1"></i> Tambah Baris</button>
+                <button type="button" id="btnReset" class="btn btn-outline-danger btn-sm fw-semibold"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset Form</button>
+            </div>
             <button type="button" id="syncSheet" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i> Sync Apps Script API</button>
         </div>
 
@@ -201,14 +204,23 @@ async function fetchGoogleSheetsMaster() {
         const data = await response.json();
         
         datalist.innerHTML = "";
-        masterData = data;
+        masterData = Array.isArray(data) ? data : (data.data || []);
 
         masterData.forEach(item => {
             if (item.kode || item.nama) {
-                const option = document.createElement("option");
-                option.value = item.kode;
-                option.label = `${item.kode} | ${item.nama} (${item.satuan})`;
-                datalist.appendChild(option);
+                // Option berdasarkan Kode
+                const optKode = document.createElement("option");
+                optKode.value = item.kode;
+                optKode.label = `[${item.kode}] - ${item.nama} (${item.satuan})`;
+                datalist.appendChild(optKode);
+
+                // Option berdasarkan Nama (untuk pencarian lewat nama)
+                if (item.nama && item.nama !== item.kode) {
+                    const optNama = document.createElement("option");
+                    optNama.value = item.nama;
+                    optNama.label = `${item.nama} - [${item.kode}] (${item.satuan})`;
+                    datalist.appendChild(optNama);
+                }
             }
         });
 
@@ -222,22 +234,35 @@ async function fetchGoogleSheetsMaster() {
     }
 }
 
-// Otomatisasi Input
+// Otomatisasi Input & Fitur Pencarian (Berdasarkan Kode atau Nama)
 tableBody.addEventListener("input", e => {
-    if (e.target.classList.contains("kode")) {
+    const isKode = e.target.classList.contains("kode");
+    const isNama = e.target.classList.contains("nama");
+
+    if (isKode || isNama) {
         const val = e.target.value.trim().toLowerCase();
         const row = e.target.closest("tr");
         
+        if (!val) return;
+
+        // Cari item berdasarkan Kode atau Nama (Case-Insensitive)
         const found = masterData.find(item => 
-            item.kode.toLowerCase() === val || item.nama.toLowerCase() === val
+            (item.kode && item.kode.toLowerCase() === val) || 
+            (item.nama && item.nama.toLowerCase() === val)
         );
 
         if (found) {
-            row.querySelector(".kode").value = found.kode;
-            row.querySelector(".nama").value = found.nama;
-            row.querySelector(".satuan").value = found.satuan;
+            row.querySelector(".kode").value = found.kode || "";
+            row.querySelector(".nama").value = found.nama || "";
+            row.querySelector(".satuan").value = found.satuan || "";
             renderPreview();
         }
+    }
+
+    // Auto-Add Row saat mengisi baris paling bawah
+    const row = e.target.closest("tr");
+    if (row && row === tableBody.lastElementChild && e.target.value.trim() !== "") {
+        tableBody.insertAdjacentHTML("beforeend", createRow(tableBody.rows.length + 1));
     }
 });
 
@@ -257,7 +282,7 @@ function createRow(no){
     return `<tr>
         <td class="text-center font-monospace">${no}</td>
         <td><input type="text" class="kode" list="masterKodeList" placeholder="Ketik Kode/Nama"></td>
-        <td><input type="text" class="nama" placeholder="Nama item barang"></td>
+        <td><input type="text" class="nama" list="masterKodeList" placeholder="Nama item barang"></td>
         <td><input type="number" class="qty" value="1" min="1"></td>
         <td><input type="text" class="satuan" placeholder="Pcs/Set"></td>
         <td><input type="text" class="stock" placeholder="0"></td>
@@ -269,13 +294,40 @@ function createRow(no){
 }
 
 addRowBtn.addEventListener("click", ()=>{ tableBody.insertAdjacentHTML("beforeend", createRow(tableBody.rows.length + 1)); });
+
 tableBody.addEventListener("click", e=>{
     const btn = e.target.closest(".hapus");
     if(!btn) return;
-    if(tableBody.rows.length === 1){ alert("Minimal 1 baris."); return; }
+    if(tableBody.rows.length === 1){ 
+        // Reset baris pertama jika tinggal 1
+        const inputs = tableBody.rows[0].querySelectorAll("input");
+        inputs.forEach(i => i.value = (i.classList.contains("qty") ? "1" : ""));
+        renderPreview();
+        return; 
+    }
     btn.closest("tr").remove();
     [...tableBody.rows].forEach((r,i)=>r.cells[0].innerText = i+1);
     renderPreview();
+});
+
+// Fitur Reset Form
+document.getElementById("btnReset").addEventListener("click", () => {
+    if (confirm("Apakah Anda yakin ingin mengosongkan seluruh isi form?")) {
+        document.getElementById("tanggal").valueAsDate = new Date();
+        document.getElementById("departemen").value = "ENGINEERING";
+        document.getElementById("nomor").value = "ENG / 07 - 26 / ";
+        document.getElementById("jenis").value = "OPEX";
+        
+        document.getElementById("user").value = "";
+        document.getElementById("gudang").value = "";
+        document.getElementById("kepala").value = "";
+        document.getElementById("fam").value = "";
+        document.getElementById("gm").value = "";
+
+        tableBody.innerHTML = createRow(1);
+        renderPreview();
+        showToast("Form berhasil di-reset.");
+    }
 });
 
 function renderPreview(){
@@ -297,17 +349,33 @@ function renderPreview(){
     for(let i=0; i<totalRowsToDisplay; i++){
         if(i < rows.length){
             const r = rows[i];
-            rowsHTML += `<tr>
-                <td style="text-align:center">${i+1}</td>
-                <td>${escapeHTML(r.querySelector(".kode").value)}</td>
-                <td>${escapeHTML(r.querySelector(".nama").value)}</td>
-                <td style="text-align:center">${escapeHTML(r.querySelector(".qty").value)}</td>
-                <td style="text-align:center">${escapeHTML(r.querySelector(".satuan").value)}</td>
-                <td style="text-align:center">${escapeHTML(r.querySelector(".stock").value)}</td>
-                <td style="text-align:center">${formatTanggalIndo(r.querySelector(".delivery").value)}</td>
-                <td>${escapeHTML(r.querySelector(".keperluan").value)}</td>
-                <td style="text-align:center">${escapeHTML(r.querySelector(".pr").value)}</td>
-            </tr>`;
+            const kodeVal = escapeHTML(r.querySelector(".kode").value);
+            const namaVal = escapeHTML(r.querySelector(".nama").value);
+            const qtyVal = escapeHTML(r.querySelector(".qty").value);
+            const satuanVal = escapeHTML(r.querySelector(".satuan").value);
+            const stockVal = escapeHTML(r.querySelector(".stock").value);
+            const deliveryVal = formatTanggalIndo(r.querySelector(".delivery").value);
+            const keperluanVal = escapeHTML(r.querySelector(".keperluan").value);
+            const prVal = escapeHTML(r.querySelector(".pr").value);
+
+            // Hanya tampilkan jika setidaknya ada 1 field yang diisi
+            const hasData = kodeVal || namaVal || satuanVal || keperluanVal || prVal;
+
+            if (hasData || i < rows.length - 1 || rows.length === 1) {
+                rowsHTML += `<tr>
+                    <td style="text-align:center">${i+1}</td>
+                    <td>${kodeVal}</td>
+                    <td>${namaVal}</td>
+                    <td style="text-align:center">${qtyVal}</td>
+                    <td style="text-align:center">${satuanVal}</td>
+                    <td style="text-align:center">${stockVal}</td>
+                    <td style="text-align:center">${deliveryVal}</td>
+                    <td>${keperluanVal}</td>
+                    <td style="text-align:center">${prVal}</td>
+                </tr>`;
+            } else {
+                rowsHTML += `<tr><td style="text-align:center">${i+1}</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
+            }
         } else {
             rowsHTML += `<tr><td style="text-align:center">${i+1}</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
         }
