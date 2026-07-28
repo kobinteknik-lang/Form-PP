@@ -275,14 +275,18 @@ tableBody.addEventListener("input", e => {
 
 document.getElementById("syncSheet").addEventListener("click", fetchGoogleSheetsMaster);
 
+// Format Tanggal Singkat: DD/MM/YY (Contoh: 04/08/26)
 function formatTanggalIndo(dateStr){
     if(!dateStr) return "";
-    const p = dateStr.split("-");
+    const p = dateStr.split("-"); // Input HTML Date: YYYY-MM-DD
     if(p.length !== 3) return dateStr;
-    const bulan = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
-    return `${parseInt(p[2])} ${bulan[parseInt(p[1])-1]} ${p[0]}`;
+    
+    const tgl = p[2].padStart(2, '0');
+    const bln = p[1].padStart(2, '0');
+    const thn = p[0].slice(-2); // Mengambil 2 digit terakhir tahun
+    
+    return `${tgl}/${bln}/${thn}`;
 }
-
 function escapeHTML(s){ return !s ? "" : s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
 function createRow(no){
