@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Request System - KOBINTILES (Secure Apps Script API)</title>
+    
+    <!-- Bootstrap 5 CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+:root { --primary-color: #1e3a8a; --bg-surface: #f8fafc; --card-bg: #ffffff; --border-color: #e2e8f0; --text-main: #0f172a; }
+body { background-color: var(--bg-surface); color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 0.875rem; padding-bottom: 50px; }
+.app-header { background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: #fff; padding: 1.25rem 0; margin-bottom: 2rem; }
+.card-custom { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.75rem; margin-bottom: 1.5rem; }
+.section-tag { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--primary-color); background: #eff6ff; padding: 0.25rem 0.75rem; border-radius: 9999px; display: inline-block; margin-bottom: 1rem; }
+.form-label { font-weight: 600; font-size: 0.8125rem; color: #334155; }
+.form-control, .form-select { border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.875rem; }
+.table-input-wrapper { border: 1px solid var(--border-color); border-radius: 8px; overflow-x: auto; background: #fff; }
+#itemTable { margin-bottom: 0; width: 100%; min-width: 900px; }
+#itemTable thead th { background-color: #f1f5f9; color: #334155; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.75rem 0.5rem; border-bottom: 1px solid var(--border-color); text-align: center; }
+#itemTable tbody td { padding: 0.35rem 0.5rem; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+#itemTable input { border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.35rem 0.5rem; font-size: 0.8125rem; width: 100%; }
+.btn-action-group { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.btn-modern { font-weight: 600; font-size: 0.8125rem; padding: 0.5rem 1.25rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.5rem; }
+.toast-box { position: fixed; right: 20px; bottom: 20px; background: #0f172a; color: #fff; padding: 12px 20px; border-radius: 8px; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 9999; }
+.toast-box.show { opacity: 1; visibility: visible; }
+.loading { display: none; position: fixed; inset: 0; background: rgba(255, 255, 255, 0.75); z-index: 9999; justify-content: center; align-items: center; }
+
+#printAreaContainer { background: #fff; border-radius: 12px; border: 1px solid var(--border-color); padding: 1.25rem; }
+#printArea { background: #ffffff; margin: auto; width: 148mm; max-width: 100%; }
+.kobin-form-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; font-size: 8.5px; color: #000; }
+.kobin-form-table td, .kobin-form-table th { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; }
+.kobin-form-table .logo-cell { width: 85px; text-align: center; padding: 2px !important; }
+.kobin-form-table .logo-cell img { max-width: 75px; height: auto; display: block; margin: auto; }
+.kobin-form-table .title-cell { text-align: center; font-size: 11px; font-weight: 700; }
+.kobin-form-table .meta-cell { width: 125px; font-size: 7.5px; font-weight: 600; padding: 0 !important; }
+.meta-inner-table { width: 100%; border-collapse: collapse; }
+.meta-inner-table td { border: none; border-bottom: 1px solid #000; padding: 1.5px 3px; text-align: right; }
+.meta-inner-table tr:last-child td { border-bottom: none; }
+.info-clean-cell { border-top: none !important; border-bottom: 1px solid #000 !important; border-left: none !important; border-right: none !important; font-weight: 700; font-size: 8.5px; padding: 2px 4px !important; }
+.check-cell { font-weight: 700; font-size: 8.5px; border-top: none !important; border-bottom: 1px solid #000 !important; border-left: none !important; border-right: none !important; }
+.checkbox-box { display: inline-block; width: 10px; height: 10px; border: 1px solid #000; margin-right: 3px; text-align: center; line-height: 7px; font-size: 7px; }
+.kobin-form-table th.th-blue { background-color: #bdd7ee !important; text-align: center; font-weight: 700; font-size: 8px; }
+.sig-container-td { border: none !important; padding: 0 !important; }
+.sig-table-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.sig-table-grid td { border: none !important; text-align: center; padding: 2px 1px; }
+.sig-title-text, .sig-name-text, .sig-role-text { font-weight: 700; text-align: center; }
+.sig-title-text { font-size: 8px; } .sig-space-height { height: 30px; } .sig-name-text { font-size: 8px; } .sig-role-text { font-size: 7.5px; }
+.note-cell { font-size: 7px; font-style: italic; font-weight: 600; padding: 4px !important; border: none !important; }
+
+@media print {
+    body { background: #fff; padding: 0; }
+    .app-header, .card-custom, .toast-box, .loading, #printAreaContainer h5, #printAreaContainer .text-muted { display: none !important; }
+    #printAreaContainer { border: none; padding: 0; }
+    #printArea { width: 100%; margin: 0; padding: 0; }
+    .kobin-form-table { width: 100%; border: 1.5px solid #000; }
+    @page { size: A5 portrait; margin: 4mm; }
+}
+    </style>
+</head>
+<body>
+
+<div class="loading" id="loading"><div class="spinner-border text-primary"></div></div>
+<div class="toast-box" id="toast"></div>
+
+<!-- Auto Complete Dropdown Options -->
+<datalist id="masterKodeList"></datalist>
+
+<header class="app-header">
+    <div class="container-fluid max-width-lg px-4 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-0">Form Pengajuan Pembelian</h4>
+            <p class="small text-white-50 mb-0">Purchase Request System — KOBINTILES</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span id="sheetStatus" class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="bi bi-arrow-repeat me-1"></i>Loading API...</span>
+            <span class="badge bg-white text-dark px-3 py-2 rounded-pill fw-semibold">FR-PUR-08</span>
+        </div>
+    </div>
+</header>
+
+<main class="container-fluid max-width-lg px-4">
+    <div class="card-custom">
+        <span class="section-tag">1. Informasi Pengajuan</span>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3"><label class="form-label">Tanggal</label><input type="date" id="tanggal" class="form-control"></div>
+            <div class="col-md-3"><label class="form-label">Nama Departemen</label><input type="text" id="departemen" class="form-control" value="ENGINEERING"></div>
+            <div class="col-md-3"><label class="form-label">Nomor Pengajuan</label><input type="text" id="nomor" class="form-control" value="ENG / 07 - 26 / "></div>
+            <div class="col-md-3">
+                <label class="form-label">Jenis Pengajuan</label>
+                <select id="jenis" class="form-select"><option value="OPEX">OPEX</option><option value="CAPEX">CAPEX</option></select>
+            </div>
+        </div>
+
+        <span class="section-tag">2. Daftar Item Barang</span>
+        <div class="table-input-wrapper mb-3">
+            <table class="table" id="itemTable">
+                <thead>
+                    <tr>
+                        <th style="width: 45px;">No.</th>
+                        <th style="width: 150px;">Kode Item</th>
+                        <th>Nama Item</th>
+                        <th style="width: 80px;">Qty</th>
+                        <th style="width: 90px;">Satuan</th>
+                        <th style="width: 110px;">Stock Existing</th>
+                        <th style="width: 130px;">Delivery Date</th>
+                        <th style="width: 200px;">Keperluan</th>
+                        <th style="width: 120px;">Nomor PR</th>
+                        <th style="width: 50px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-center font-monospace">1</td>
+                        <td><input type="text" class="kode" list="masterKodeList" placeholder="Ketik Kode/Nama"></td>
+                        <td><input type="text" class="nama" placeholder="Nama item barang"></td>
+                        <td><input type="number" class="qty" value="1" min="1"></td>
+                        <td><input type="text" class="satuan" placeholder="Pcs/Set"></td>
+                        <td><input type="text" class="stock" placeholder="0"></td>
+                        <td><input type="date" class="delivery"></td>
+                        <td><input type="text" class="keperluan" placeholder="Alasan kebutuhan"></td>
+                        <td><input type="text" class="pr" placeholder="No. PR"></td>
+                        <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm border-0 hapus"><i class="bi bi-trash"></i></button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mb-4 d-flex justify-content-between">
+            <button type="button" id="addRow" class="btn btn-light btn-sm text-primary border fw-semibold"><i class="bi bi-plus-lg me-1"></i> Tambah Baris</button>
+            <button type="button" id="syncSheet" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i> Sync Apps Script API</button>
+        </div>
+
+        <span class="section-tag">3. Otorisasi Tanda Tangan</span>
+        <div class="row g-3 mb-4">
+            <div class="col-md-2"><label class="form-label">User</label><input type="text" id="user" class="form-control"></div>
+            <div class="col-md-2"><label class="form-label">Gudang</label><input type="text" id="gudang" class="form-control"></div>
+            <div class="col-md-2"><label class="form-label">Kepala Bagian</label><input type="text" id="kepala" class="form-control"></div>
+            <div class="col-md-3"><label class="form-label">*FAM / ME / PM / PPIC</label><input type="text" id="fam" class="form-control"></div>
+            <div class="col-md-3"><label class="form-label">General Manager</label><input type="text" id="gm" class="form-control"></div>
+        </div>
+
+        <div class="pt-3 border-top btn-action-group">
+            <button type="button" id="preview" class="btn btn-primary btn-modern"><i class="bi bi-arrow-repeat"></i> Preview</button>
+            <button type="button" id="btnPDF" class="btn btn-danger btn-modern"><i class="bi bi-file-earmark-pdf-fill"></i> Export PDF</button>
+            <button type="button" id="btnExcel" class="btn btn-success btn-modern"><i class="bi bi-file-earmark-excel-fill"></i> Export Excel</button>
+            <button type="button" onclick="window.print()" class="btn btn-secondary btn-modern"><i class="bi bi-printer-fill"></i> Cetak A5</button>
+        </div>
+    </div>
+
+    <div id="printAreaContainer">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0 text-secondary"><i class="bi bi-eye-fill me-2"></i>Hasil Live Preview</h5>
+        </div>
+        <div id="printArea"></div>
+    </div>
+</main>
+
+<script>
+// =========================================================================
+// PASTE URL APPS SCRIPT WEB APP ANDA DI SINI (BERAKHIRAN /exec)
+// =========================================================================
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyhsjbOK85KMTcqnREHYwEjPYo-97ZoNhfrp2g825Nq3BeaXkiPX-4Zf4KAYSYXQtCe/exec";
+const GITHUB_LOGO_URL = "https://raw.githubusercontent.com/username/repository/main/logo.png";
+
+let masterData = [];
+
+const tableBody = document.querySelector("#itemTable tbody");
+const addRowBtn = document.getElementById("addRow");
+const previewBtn = document.getElementById("preview");
+const printArea = document.getElementById("printArea");
+const toast = document.getElementById("toast");
+const loading = document.getElementById("loading");
+const sheetStatus = document.getElementById("sheetStatus");
+const datalist = document.getElementById("masterKodeList");
+
+document.getElementById("tanggal").valueAsDate = new Date();
+
+function showToast(m){ toast.innerHTML=m; toast.classList.add("show"); setTimeout(()=>toast.classList.remove("show"), 2500); }
+function showLoading(){ loading.style.display="flex"; }
+function hideLoading(){ loading.style.display="none"; }
+
+// Fetch Master Items via Apps Script JSON API
+async function fetchGoogleSheetsMaster() {
+    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("PASANG_URL")) {
+        sheetStatus.className = "badge bg-secondary text-white px-3 py-2 rounded-pill";
+        sheetStatus.innerHTML = "<i class=\"bi bi-exclamation-circle me-1\"></i>URL Apps Script Belum Diisi";
+        return;
+    }
+
+    try {
+        const response = await fetch(APPS_SCRIPT_URL);
+        const data = await response.json();
+        
+        datalist.innerHTML = "";
+        masterData = data;
+
+        masterData.forEach(item => {
+            if (item.kode || item.nama) {
+                const option = document.createElement("option");
+                option.value = item.kode;
+                option.label = `${item.kode} | ${item.nama} (${item.satuan})`;
+                datalist.appendChild(option);
+            }
+        });
+
+        sheetStatus.className = "badge bg-success text-white px-3 py-2 rounded-pill";
+        sheetStatus.innerHTML = `<i class="bi bi-shield-check me-1"></i>Secure API Connected (${masterData.length} Items)`;
+        showToast(`Berhasil memuat ${masterData.length} data via API privat!`);
+    } catch (err) {
+        console.error(err);
+        sheetStatus.className = "badge bg-danger text-white px-3 py-2 rounded-pill";
+        sheetStatus.innerHTML = "<i class=\"bi bi-x-circle-fill me-1\"></i>Gagal Load API";
+    }
+}
+
+// Otomatisasi Input
+tableBody.addEventListener("input", e => {
+    if (e.target.classList.contains("kode")) {
+        const val = e.target.value.trim().toLowerCase();
+        const row = e.target.closest("tr");
+        
+        const found = masterData.find(item => 
+            item.kode.toLowerCase() === val || item.nama.toLowerCase() === val
+        );
+
+        if (found) {
+            row.querySelector(".kode").value = found.kode;
+            row.querySelector(".nama").value = found.nama;
+            row.querySelector(".satuan").value = found.satuan;
+            renderPreview();
+        }
+    }
+});
+
+document.getElementById("syncSheet").addEventListener("click", fetchGoogleSheetsMaster);
+
+function formatTanggalIndo(dateStr){
+    if(!dateStr) return "";
+    const p = dateStr.split("-");
+    if(p.length !== 3) return dateStr;
+    const bulan = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
+    return `${parseInt(p[2])} ${bulan[parseInt(p[1])-1]} ${p[0]}`;
+}
+
+function escapeHTML(s){ return !s ? "" : s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function createRow(no){
+    return `<tr>
+        <td class="text-center font-monospace">${no}</td>
+        <td><input type="text" class="kode" list="masterKodeList" placeholder="Ketik Kode/Nama"></td>
+        <td><input type="text" class="nama" placeholder="Nama item barang"></td>
+        <td><input type="number" class="qty" value="1" min="1"></td>
+        <td><input type="text" class="satuan" placeholder="Pcs/Set"></td>
+        <td><input type="text" class="stock" placeholder="0"></td>
+        <td><input type="date" class="delivery"></td>
+        <td><input type="text" class="keperluan" placeholder="Alasan kebutuhan"></td>
+        <td><input type="text" class="pr" placeholder="No. PR"></td>
+        <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm border-0 hapus"><i class="bi bi-trash"></i></button></td>
+    </tr>`;
+}
+
+addRowBtn.addEventListener("click", ()=>{ tableBody.insertAdjacentHTML("beforeend", createRow(tableBody.rows.length + 1)); });
+tableBody.addEventListener("click", e=>{
+    const btn = e.target.closest(".hapus");
+    if(!btn) return;
+    if(tableBody.rows.length === 1){ alert("Minimal 1 baris."); return; }
+    btn.closest("tr").remove();
+    [...tableBody.rows].forEach((r,i)=>r.cells[0].innerText = i+1);
+    renderPreview();
+});
+
+function renderPreview(){
+    const tgl = formatTanggalIndo(document.getElementById("tanggal").value);
+    const dept = escapeHTML(document.getElementById("departemen").value.toUpperCase());
+    const nomor = escapeHTML(document.getElementById("nomor").value.toUpperCase());
+    const jenis = document.getElementById("jenis").value;
+
+    const user = escapeHTML(document.getElementById("user").value);
+    const gudang = escapeHTML(document.getElementById("gudang").value);
+    const kepala = escapeHTML(document.getElementById("kepala").value);
+    const fam = escapeHTML(document.getElementById("fam").value);
+    const gm = escapeHTML(document.getElementById("gm").value);
+
+    let rowsHTML = "";
+    const rows = [...tableBody.rows];
+    const totalRowsToDisplay = Math.max(10, rows.length);
+
+    for(let i=0; i<totalRowsToDisplay; i++){
+        if(i < rows.length){
+            const r = rows[i];
+            rowsHTML += `<tr>
+                <td style="text-align:center">${i+1}</td>
+                <td>${escapeHTML(r.querySelector(".kode").value)}</td>
+                <td>${escapeHTML(r.querySelector(".nama").value)}</td>
+                <td style="text-align:center">${escapeHTML(r.querySelector(".qty").value)}</td>
+                <td style="text-align:center">${escapeHTML(r.querySelector(".satuan").value)}</td>
+                <td style="text-align:center">${escapeHTML(r.querySelector(".stock").value)}</td>
+                <td style="text-align:center">${formatTanggalIndo(r.querySelector(".delivery").value)}</td>
+                <td>${escapeHTML(r.querySelector(".keperluan").value)}</td>
+                <td style="text-align:center">${escapeHTML(r.querySelector(".pr").value)}</td>
+            </tr>`;
+        } else {
+            rowsHTML += `<tr><td style="text-align:center">${i+1}</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
+        }
+    }
+
+    const spaceInner = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+
+    printArea.innerHTML = `
+    <table class="kobin-form-table">
+        <tr>
+            <td colspan="2" class="logo-cell" rowspan="2"><img src="${GITHUB_LOGO_URL}" alt="KOBINTILES" crossorigin="anonymous" onerror="this.onerror=null; this.alt='KOBINTILES';"></td>
+            <td colspan="5" class="title-cell" rowspan="2">FORMULIR PENGAJUAN PEMBELIAN</td>
+            <td colspan="2" class="meta-cell">
+                <table class="meta-inner-table">
+                    <tr><td><b>No. Dokumen :</b> FR-PUR-08</td></tr>
+                    <tr><td><b>No. Revisi :</b> 00</td></tr>
+                    <tr><td><b>Tgl. Berlaku :</b> 22 Nov 2025</td></tr>
+                </table>
+            </td>
+        </tr>
+        <tr></tr>
+        <tr>
+            <td class="info-clean-cell" colspan="7">
+                <table style="width:100%; border:none;">
+                    <tr><td style="width:90px; border:none;">Tanggal</td><td style="border:none;">: ${tgl}</td></tr>
+                    <tr><td style="border:none;">Nama Departemen</td><td style="border:none;">: ${dept}</td></tr>
+                    <tr><td style="border:none;">Nomor</td><td style="border:none;">: ${nomor}</td></tr>
+                </table>
+            </td>
+            <td class="check-cell" colspan="2" style="vertical-align:top; padding-top:4px !important;">
+                <div><span class="checkbox-box">${jenis==='CAPEX'?'&#10003;':''}</span> CAPEX</div>
+                <div style="margin-top:3px;"><span class="checkbox-box">${jenis==='OPEX'?'&#10003;':''}</span> OPEX</div>
+            </td>
+        </tr>
+        <tr>
+            <th class="th-blue" rowspan="2" style="width:20px">No.</th>
+            <th class="th-blue" rowspan="2" style="width:55px">Kode Item</th>
+            <th class="th-blue" rowspan="2">Nama Item</th>
+            <th class="th-blue" colspan="3" style="width:105px">Jumlah (Qty)</th>
+            <th class="th-blue" rowspan="2" style="width:50px">Delivery Date</th>
+            <th class="th-blue" rowspan="2" style="width:95px">Keperluan</th>
+            <th class="th-blue" rowspan="2" style="width:50px">Nomor PR</th>
+        </tr>
+        <tr>
+            <th class="th-blue" style="width:40px">Pengajuan Pembelian</th>
+            <th class="th-blue" style="width:30px">Satuan</th>
+            <th class="th-blue" style="width:35px">Stock Existing</th>
+        </tr>
+        ${rowsHTML}
+        <tr>
+            <td colspan="9" class="sig-container-td">
+                <table class="sig-table-grid">
+                    <tr>
+                        <td class="sig-title-text">Diajukan oleh:</td>
+                        <td class="sig-title-text">Diperiksa oleh:</td>
+                        <td class="sig-title-text">Diketahui oleh:</td>
+                        <td class="sig-title-text" colspan="2">Disetujui oleh:</td>
+                    </tr>
+                    <tr><td class="sig-space-height"></td><td class="sig-space-height"></td><td class="sig-space-height"></td><td class="sig-space-height"></td><td class="sig-space-height"></td></tr>
+                    <tr>
+                        <td class="sig-name-text">( ${user || spaceInner} )</td>
+                        <td class="sig-name-text">( ${gudang || spaceInner} )</td>
+                        <td class="sig-name-text">( ${kepala || spaceInner} )</td>
+                        <td class="sig-name-text">( ${fam || spaceInner} )</td>
+                        <td class="sig-name-text">( ${gm || spaceInner} )</td>
+                    </tr>
+                    <tr>
+                        <td class="sig-role-text">User</td>
+                        <td class="sig-role-text">Gudang</td>
+                        <td class="sig-role-text">Kepala Bagian</td>
+                        <td class="sig-role-text">*FAM/ME/PM/PPIC</td>
+                        <td class="sig-role-text">General Manager</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="9" class="note-cell">
+                <div><b>Note :</b></div>
+                <div>1. Tanda tangan wajib diberi nama dan tanggal</div>
+                <div>2. Coret yang tidak perlu pada kolom menyetujui sesuai dengan peruntukan pengajuan :</div>
+                <div style="padding-left:8px;">* FAM = Finance & Accounting Manager / ME = Maintenance / PM = Project Manager</div>
+            </td>
+        </tr>
+    </table>`;
+}
+
+previewBtn.addEventListener("click", ()=>{ showLoading(); setTimeout(()=>{ renderPreview(); hideLoading(); showToast("Preview diperbarui."); },200); });
+document.addEventListener("input", (e)=>{ if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') renderPreview(); });
+
+// Load Master Data via API
+fetchGoogleSheetsMaster();
+renderPreview();
+
+// Export PDF & Excel
+document.getElementById("btnPDF").addEventListener("click", async ()=>{
+    renderPreview(); showLoading();
+    try {
+        const { jsPDF } = window.jspdf;
+        const canvas = await html2canvas(printArea, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" });
+        const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a5" });
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pdfWidth, (canvas.height * pdfWidth) / canvas.width);
+        pdf.save("Form_Pengajuan_Pembelian_KOBINTILES.pdf");
+        showToast("PDF berhasil di-download.");
+    } catch(e) { console.error(e); alert("Gagal PDF."); } finally { hideLoading(); }
+});
+
+document.getElementById("btnExcel").addEventListener("click", () => {
+    showLoading();
+    setTimeout(() => {
+        try {
+            const tableElement = printArea.querySelector(".kobin-form-table");
+            const excelHTML = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>table { border-collapse: collapse; font-family: Arial; font-size: 11px; } td, th { border: 1px solid #000; padding: 4px; } .th-blue { background-color: #BDD7EE !important; font-weight: bold; } .sig-table-grid td { border: none !important; text-align: center; } .sig-title-text, .sig-name-text, .sig-role-text { font-weight: bold; } .note-cell { font-size: 9px; font-style: italic; border: none !important; }</style></head><body>${tableElement.outerHTML}</body></html>`;
+            const blob = new Blob([excelHTML], { type: "application/vnd.ms-excel;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url; a.download = "Form_Pengajuan_Pembelian_KOBINTILES.xls";
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            showToast("Excel presisi berhasil dibuat!");
+        } catch (e) { alert("Gagal Excel."); } finally { hideLoading(); }
+    }, 200);
+});
+</script>
+</body>
+</html>
