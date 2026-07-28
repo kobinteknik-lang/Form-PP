@@ -203,30 +203,36 @@ function showToast(m){ toast.innerHTML=m; toast.classList.add("show"); setTimeou
 function showLoading(){ loading.style.display="flex"; }
 function hideLoading(){ loading.style.display="none"; }
 
-// --- GENERATE NOMOR OTOMATIS (ENGINEERING -> ENG) ---
+// --- GENERATE NOMOR OTOMATIS BERDASARKAN TANGGAL & DEPARTEMEN ---
 async function generateAutoNumber() {
     let deptInput = document.getElementById("departemen").value.trim().toUpperCase();
     let dept = deptInput === "ENGINEERING" ? "ENG" : (deptInput || "ENG");
+    let tglVal = document.getElementById("tanggal").value; // Ambil nilai tanggal yang dipilih
 
     try {
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=getNewNo&dept=${encodeURIComponent(dept)}`);
+        // Kirim departemen DAN tanggal ke API
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getNewNo&dept=${encodeURIComponent(dept)}&date=${encodeURIComponent(tglVal)}`);
         const data = await res.json();
         if(data && data.status === "success" && data.nextNo) {
             document.getElementById("nomor").value = data.nextNo;
         } else {
-            throw new Error("Nomor otomatis gagal dimuat dari API.");
+            throw new Error("Gagal mengambil nomor dari server");
         }
     } catch(e) {
-        const now = new Date();
-        const bln = String(now.getMonth() + 1).padStart(2, '0');
-        const thn = String(now.getFullYear()).slice(-2);
+        // Fallback lokal jika offline/gagal API
+        const dateObj = tglVal ? new Date(tglVal) : new Date();
+        const bln = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const thn = String(dateObj.getFullYear()).slice(-2);
         document.getElementById("nomor").value = `${dept} / ${bln} - ${thn} / 001`;
     } finally {
         renderPreview();
     }
 }
-document.getElementById("btnGenNo").addEventListener("click", generateAutoNumber);
+
+// Tambahkan pemicu saat tanggal diganti:
+document.getElementById("tanggal").addEventListener("change", generateAutoNumber);
 document.getElementById("departemen").addEventListener("change", generateAutoNumber);
+document.getElementById("btnGenNo").addEventListener("click", generateAutoNumber);
 
 // --- FETCH MASTER DATA (NULL-SAFE) ---
 async function fetchGoogleSheetsMaster() {
