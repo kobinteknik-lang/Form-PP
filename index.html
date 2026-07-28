@@ -24,8 +24,7 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
 .form-control, .form-select { border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.875rem; }
 .table-input-wrapper { border: 1px solid var(--border-color); border-radius: 8px; overflow-x: auto; background: #fff; }
 
-/* Menyesuaikan min-width tabel input agar tidak terlalu empet */
-#itemTable { margin-bottom: 0; width: 100%; min-width: 1050px; }
+#itemTable { margin-bottom: 0; width: 100%; min-width: 1100px; }
 #itemTable thead th { background-color: #f1f5f9; color: #334155; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.75rem 0.5rem; border-bottom: 1px solid var(--border-color); text-align: center; }
 #itemTable tbody td { padding: 0.35rem 0.5rem; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
 #itemTable input { border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.35rem 0.5rem; font-size: 0.8125rem; width: 100%; }
@@ -38,7 +37,7 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
 #printAreaContainer { background: #fff; border-radius: 12px; border: 1px solid var(--border-color); padding: 1.25rem; }
 #printArea { background: #ffffff; margin: auto; width: 148mm; max-width: 100%; }
 
-/* Pengaturan auto wrap text & tabel cetak A5 */
+/* Pengaturan tabel cetak A5 dengan kolom Nama Item yang lebar */
 .kobin-form-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; font-size: 8.5px; color: #000; table-layout: fixed; }
 .kobin-form-table td, .kobin-form-table th { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; word-wrap: break-word; overflow-wrap: break-word; }
 .kobin-form-table .logo-cell { width: 85px; text-align: center; padding: 2px !important; }
@@ -114,15 +113,15 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
             <table class="table" id="itemTable">
                 <thead>
                     <tr>
-                        <th style="width: 40px;">No.</th>
-                        <th style="width: 120px;">Kode Item</th>
-                        <th>Nama Item</th>
-                        <th style="width: 60px;">Qty</th>
-                        <th style="width: 70px;">Satuan</th>
-                        <th style="width: 90px;">Stock Existing</th>
+                        <th style="width: 35px;">No.</th>
+                        <th style="width: 110px;">Kode Item</th>
+                        <th style="min-width: 280px;">Nama Item</th> <!-- DILEBARKAN UNTUK 5-6 KATA -->
+                        <th style="width: 55px;">Qty</th>
+                        <th style="width: 65px;">Satuan</th>
+                        <th style="width: 85px;">Stock Existing</th>
                         <th style="width: 100px;">Delivery Date</th>
-                        <th style="width: 250px;">Keperluan</th> <!-- DILAPANGKAN -->
-                        <th style="width: 150px;">Nomor PR</th> <!-- DILAPANGKAN -->
+                        <th style="width: 180px;">Keperluan</th>
+                        <th style="width: 110px;">Nomor PR</th>
                         <th style="width: 45px;">Aksi</th>
                     </tr>
                 </thead>
@@ -488,18 +487,18 @@ function renderPreview(){
             </td>
         </tr>
         <tr>
-            <th class="th-blue" rowspan="2" style="width:18px">No.</th>
+            <th class="th-blue" rowspan="2" style="width:16px">No.</th>
             <th class="th-blue" rowspan="2" style="width:48px">Kode Item</th>
-            <th class="th-blue" rowspan="2" style="width:120px">Nama Item</th> <!-- AUTO WRAPTEXT -->
-            <th class="th-blue" colspan="3" style="width:85px">Jumlah (Qty)</th>
-            <th class="th-blue" rowspan="2" style="width:42px">Delivery Date</th>
-            <th class="th-blue" rowspan="2" style="width:115px">Keperluan</th> <!-- DILAPANGKAN -->
-            <th class="th-blue" rowspan="2" style="width:62px">Nomor PR</th> <!-- DILAPANGKAN -->
+            <th class="th-blue" rowspan="2" style="width:180px">Nama Item</th> <!-- DILEBARKAN SANGAT LUAS (5-6 KATA) -->
+            <th class="th-blue" colspan="3" style="width:80px">Jumlah (Qty)</th>
+            <th class="th-blue" rowspan="2" style="width:40px">Delivery Date</th>
+            <th class="th-blue" rowspan="2" style="width:110px">Keperluan</th>
+            <th class="th-blue" rowspan="2" style="width:48px">Nomor PR</th>
         </tr>
         <tr>
-            <th class="th-blue" style="width:32px">Pengajuan Pembelian</th>
-            <th class="th-blue" style="width:25px">Satuan</th>
-            <th class="th-blue" style="width:28px">Stock Existing</th>
+            <th class="th-blue" style="width:30px">Pengajuan Pembelian</th>
+            <th class="th-blue" style="width:24px">Satuan</th>
+            <th class="th-blue" style="width:26px">Stock Existing</th>
         </tr>
         ${rowsHTML}
         <tr>
