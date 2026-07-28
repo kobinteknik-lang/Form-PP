@@ -37,7 +37,7 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
 #printAreaContainer { background: #fff; border-radius: 12px; border: 1px solid var(--border-color); padding: 1.25rem; }
 #printArea { background: #ffffff; margin: auto; width: 148mm; max-width: 100%; }
 
-/* Pengaturan tabel cetak A5 dengan kolom Nama Item yang lebar */
+/* Form A5 Presisi */
 .kobin-form-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; font-size: 8.5px; color: #000; table-layout: fixed; }
 .kobin-form-table td, .kobin-form-table th { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; word-wrap: break-word; overflow-wrap: break-word; }
 .kobin-form-table .logo-cell { width: 85px; text-align: center; padding: 2px !important; }
@@ -114,8 +114,8 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
                 <thead>
                     <tr>
                         <th style="width: 35px;">No.</th>
-                        <th style="width: 110px;">Kode Item</th>
-                        <th style="min-width: 280px;">Nama Item</th> <!-- DILEBARKAN UNTUK 5-6 KATA -->
+                        <th style="width: 120px;">Kode Item</th>
+                        <th style="min-width: 280px;">Nama Item</th>
                         <th style="width: 55px;">Qty</th>
                         <th style="width: 65px;">Satuan</th>
                         <th style="width: 85px;">Stock Existing</th>
@@ -286,16 +286,23 @@ tableBody.addEventListener("input", e => {
 
 document.getElementById("syncSheet").addEventListener("click", fetchGoogleSheetsMaster);
 
-// Format Tanggal Singkat: DD/MM/YY (Contoh: 04/08/26)
-function formatTanggalIndo(dateStr){
+// Format Tanggal Lengkap untuk Header (Contoh: 28 JULI 2026)
+function formatTanggalHeader(dateStr){
     if(!dateStr) return "";
     const p = dateStr.split("-");
     if(p.length !== 3) return dateStr;
-    
+    const bulan = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
+    return `${parseInt(p[2])} ${bulan[parseInt(p[1])-1]} ${p[0]}`;
+}
+
+// Format Tanggal Singkat untuk Tabel Delivery (Contoh: 28/07/26)
+function formatTanggalSingkat(dateStr){
+    if(!dateStr) return "";
+    const p = dateStr.split("-");
+    if(p.length !== 3) return dateStr;
     const tgl = p[2].padStart(2, '0');
     const bln = p[1].padStart(2, '0');
     const thn = p[0].slice(-2);
-    
     return `${tgl}/${bln}/${thn}`;
 }
 
@@ -408,7 +415,7 @@ document.getElementById("btnSaveSheet").addEventListener("click", async () => {
 });
 
 function renderPreview(){
-    const tgl = formatTanggalIndo(document.getElementById("tanggal").value);
+    const tglHeader = formatTanggalHeader(document.getElementById("tanggal").value);
     const dept = escapeHTML(document.getElementById("departemen").value.toUpperCase());
     const nomor = escapeHTML(document.getElementById("nomor").value.toUpperCase());
     const jenis = document.getElementById("jenis").value;
@@ -431,7 +438,7 @@ function renderPreview(){
             const qtyVal = escapeHTML(r.querySelector(".qty").value);
             const satuanVal = escapeHTML(r.querySelector(".satuan").value);
             const stockVal = escapeHTML(r.querySelector(".stock").value);
-            const deliveryVal = formatTanggalIndo(r.querySelector(".delivery").value);
+            const deliveryVal = formatTanggalSingkat(r.querySelector(".delivery").value);
             const keperluanVal = escapeHTML(r.querySelector(".keperluan").value);
             const prVal = escapeHTML(r.querySelector(".pr").value);
 
@@ -440,14 +447,14 @@ function renderPreview(){
             if (hasData || i < rows.length - 1 || rows.length === 1) {
                 rowsHTML += `<tr>
                     <td style="text-align:center">${i+1}</td>
-                    <td style="word-break:break-word;">${kodeVal}</td>
-                    <td style="word-break:break-word; white-space:normal;">${namaVal}</td>
+                    <td style="text-align:center;">${kodeVal}</td>
+                    <td>${namaVal}</td>
                     <td style="text-align:center">${qtyVal}</td>
                     <td style="text-align:center">${satuanVal}</td>
                     <td style="text-align:center">${stockVal}</td>
                     <td style="text-align:center">${deliveryVal}</td>
-                    <td style="word-break:break-word; white-space:normal;">${keperluanVal}</td>
-                    <td style="text-align:center; word-break:break-word;">${prVal}</td>
+                    <td>${keperluanVal}</td>
+                    <td style="text-align:center">${prVal}</td>
                 </tr>`;
             } else {
                 rowsHTML += `<tr><td style="text-align:center">${i+1}</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
@@ -476,7 +483,7 @@ function renderPreview(){
         <tr>
             <td class="info-clean-cell" colspan="7">
                 <table style="width:100%; border:none;">
-                    <tr><td style="width:90px; border:none;">Tanggal</td><td style="border:none;">: ${tgl}</td></tr>
+                    <tr><td style="width:90px; border:none;">Tanggal</td><td style="border:none;">: ${tglHeader}</td></tr>
                     <tr><td style="border:none;">Nama Departemen</td><td style="border:none;">: ${dept}</td></tr>
                     <tr><td style="border:none;">Nomor</td><td style="border:none;">: ${nomor}</td></tr>
                 </table>
@@ -487,18 +494,18 @@ function renderPreview(){
             </td>
         </tr>
         <tr>
-            <th class="th-blue" rowspan="2" style="width:16px">No.</th>
-            <th class="th-blue" rowspan="2" style="width:48px">Kode Item</th>
-            <th class="th-blue" rowspan="2" style="width:180px">Nama Item</th> <!-- DILEBARKAN SANGAT LUAS (5-6 KATA) -->
-            <th class="th-blue" colspan="3" style="width:80px">Jumlah (Qty)</th>
-            <th class="th-blue" rowspan="2" style="width:40px">Delivery Date</th>
-            <th class="th-blue" rowspan="2" style="width:110px">Keperluan</th>
-            <th class="th-blue" rowspan="2" style="width:48px">Nomor PR</th>
+            <th class="th-blue" rowspan="2" style="width:25px">No.</th>
+            <th class="th-blue" rowspan="2" style="width:75px">Kode Item</th>
+            <th class="th-blue" rowspan="2" style="width:190px">Nama Item</th>
+            <th class="th-blue" colspan="3" style="width:105px">Jumlah (Qty)</th>
+            <th class="th-blue" rowspan="2" style="width:50px">Delivery Date</th>
+            <th class="th-blue" rowspan="2" style="width:95px">Keperluan</th>
+            <th class="th-blue" rowspan="2" style="width:50px">Nomor PR</th>
         </tr>
         <tr>
-            <th class="th-blue" style="width:30px">Pengajuan Pembelian</th>
-            <th class="th-blue" style="width:24px">Satuan</th>
-            <th class="th-blue" style="width:26px">Stock Existing</th>
+            <th class="th-blue" style="width:35px">Pengajuan Pembelian</th>
+            <th class="th-blue" style="width:35px">Satuan</th>
+            <th class="th-blue" style="width:35px">Stock Existing</th>
         </tr>
         ${rowsHTML}
         <tr>
