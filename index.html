@@ -23,7 +23,9 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
 .form-label { font-weight: 600; font-size: 0.8125rem; color: #334155; }
 .form-control, .form-select { border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.875rem; }
 .table-input-wrapper { border: 1px solid var(--border-color); border-radius: 8px; overflow-x: auto; background: #fff; }
-#itemTable { margin-bottom: 0; width: 100%; min-width: 900px; }
+
+/* Menyesuaikan min-width tabel input agar tidak terlalu empet */
+#itemTable { margin-bottom: 0; width: 100%; min-width: 1050px; }
 #itemTable thead th { background-color: #f1f5f9; color: #334155; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.75rem 0.5rem; border-bottom: 1px solid var(--border-color); text-align: center; }
 #itemTable tbody td { padding: 0.35rem 0.5rem; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
 #itemTable input { border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.35rem 0.5rem; font-size: 0.8125rem; width: 100%; }
@@ -35,8 +37,10 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
 
 #printAreaContainer { background: #fff; border-radius: 12px; border: 1px solid var(--border-color); padding: 1.25rem; }
 #printArea { background: #ffffff; margin: auto; width: 148mm; max-width: 100%; }
-.kobin-form-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; font-size: 8.5px; color: #000; }
-.kobin-form-table td, .kobin-form-table th { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; }
+
+/* Pengaturan auto wrap text & tabel cetak A5 */
+.kobin-form-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; font-size: 8.5px; color: #000; table-layout: fixed; }
+.kobin-form-table td, .kobin-form-table th { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; word-wrap: break-word; overflow-wrap: break-word; }
 .kobin-form-table .logo-cell { width: 85px; text-align: center; padding: 2px !important; }
 .kobin-form-table .logo-cell img { max-width: 75px; height: auto; display: block; margin: auto; }
 .kobin-form-table .title-cell { text-align: center; font-size: 11px; font-weight: 700; }
@@ -110,16 +114,16 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
             <table class="table" id="itemTable">
                 <thead>
                     <tr>
-                        <th style="width: 45px;">No.</th>
-                        <th style="width: 150px;">Kode Item</th>
+                        <th style="width: 40px;">No.</th>
+                        <th style="width: 120px;">Kode Item</th>
                         <th>Nama Item</th>
-                        <th style="width: 80px;">Qty</th>
-                        <th style="width: 90px;">Satuan</th>
-                        <th style="width: 110px;">Stock Existing</th>
-                        <th style="width: 130px;">Delivery Date</th>
-                        <th style="width: 200px;">Keperluan</th>
-                        <th style="width: 120px;">Nomor PR</th>
-                        <th style="width: 50px;">Aksi</th>
+                        <th style="width: 60px;">Qty</th>
+                        <th style="width: 70px;">Satuan</th>
+                        <th style="width: 90px;">Stock Existing</th>
+                        <th style="width: 100px;">Delivery Date</th>
+                        <th style="width: 250px;">Keperluan</th> <!-- DILAPANGKAN -->
+                        <th style="width: 150px;">Nomor PR</th> <!-- DILAPANGKAN -->
+                        <th style="width: 45px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -192,12 +196,9 @@ function showToast(m){ toast.innerHTML=m; toast.classList.add("show"); setTimeou
 function showLoading(){ loading.style.display="flex"; }
 function hideLoading(){ loading.style.display="none"; }
 
-// --- GENERATE NOMOR AUTOMATIS ---
-// --- GENERATE NOMOR OTOMATIS (ENGINEERING -> ENG) ---
+// --- GENERATE NOMOR AUTOMATIS (ENGINEERING -> ENG) ---
 async function generateAutoNumber() {
     let dept = document.getElementById("departemen").value.trim().toUpperCase() || "ENG";
-    
-    // Singkat ENGINEERING menjadi ENG untuk format Nomor
     if (dept === "ENGINEERING") {
         dept = "ENG";
     }
@@ -217,6 +218,9 @@ async function generateAutoNumber() {
         renderPreview();
     }
 }
+document.getElementById("btnGenNo").addEventListener("click", generateAutoNumber);
+document.getElementById("departemen").addEventListener("change", generateAutoNumber);
+
 // --- FETCH MASTER DATA ---
 async function fetchGoogleSheetsMaster() {
     if(!APPS_SCRIPT_URL) return;
@@ -230,13 +234,11 @@ async function fetchGoogleSheetsMaster() {
 
         masterData.forEach(item => {
             if (item.kode || item.nama) {
-                // Option berdasarkan Kode
                 const optKode = document.createElement("option");
                 optKode.value = item.kode;
                 optKode.label = `[${item.kode}] - ${item.nama} (${item.satuan})`;
                 datalist.appendChild(optKode);
 
-                // Option berdasarkan Nama
                 if (item.nama && item.nama !== item.kode) {
                     const optNama = document.createElement("option");
                     optNama.value = item.nama;
@@ -288,12 +290,12 @@ document.getElementById("syncSheet").addEventListener("click", fetchGoogleSheets
 // Format Tanggal Singkat: DD/MM/YY (Contoh: 04/08/26)
 function formatTanggalIndo(dateStr){
     if(!dateStr) return "";
-    const p = dateStr.split("-"); // Input HTML Date: YYYY-MM-DD
+    const p = dateStr.split("-");
     if(p.length !== 3) return dateStr;
     
     const tgl = p[2].padStart(2, '0');
     const bln = p[1].padStart(2, '0');
-    const thn = p[0].slice(-2); // Mengambil 2 digit terakhir tahun
+    const thn = p[0].slice(-2);
     
     return `${tgl}/${bln}/${thn}`;
 }
@@ -395,7 +397,7 @@ document.getElementById("btnSaveSheet").addEventListener("click", async () => {
         const resData = await response.json();
         if (resData.status === "success") {
             showToast("✅ Berhasil disimpan ke Google Sheets!");
-            generateAutoNumber(); // Refresh nomor otomatis untuk transaksi berikutnya
+            generateAutoNumber();
         } else {
             alert("Gagal simpan: " + resData.message);
         }
@@ -439,14 +441,14 @@ function renderPreview(){
             if (hasData || i < rows.length - 1 || rows.length === 1) {
                 rowsHTML += `<tr>
                     <td style="text-align:center">${i+1}</td>
-                    <td>${kodeVal}</td>
-                    <td>${namaVal}</td>
+                    <td style="word-break:break-word;">${kodeVal}</td>
+                    <td style="word-break:break-word; white-space:normal;">${namaVal}</td>
                     <td style="text-align:center">${qtyVal}</td>
                     <td style="text-align:center">${satuanVal}</td>
                     <td style="text-align:center">${stockVal}</td>
                     <td style="text-align:center">${deliveryVal}</td>
-                    <td>${keperluanVal}</td>
-                    <td style="text-align:center">${prVal}</td>
+                    <td style="word-break:break-word; white-space:normal;">${keperluanVal}</td>
+                    <td style="text-align:center; word-break:break-word;">${prVal}</td>
                 </tr>`;
             } else {
                 rowsHTML += `<tr><td style="text-align:center">${i+1}</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
@@ -486,18 +488,18 @@ function renderPreview(){
             </td>
         </tr>
         <tr>
-            <th class="th-blue" rowspan="2" style="width:20px">No.</th>
-            <th class="th-blue" rowspan="2" style="width:55px">Kode Item</th>
-            <th class="th-blue" rowspan="2">Nama Item</th>
-            <th class="th-blue" colspan="3" style="width:105px">Jumlah (Qty)</th>
-            <th class="th-blue" rowspan="2" style="width:50px">Delivery Date</th>
-            <th class="th-blue" rowspan="2" style="width:95px">Keperluan</th>
-            <th class="th-blue" rowspan="2" style="width:50px">Nomor PR</th>
+            <th class="th-blue" rowspan="2" style="width:18px">No.</th>
+            <th class="th-blue" rowspan="2" style="width:48px">Kode Item</th>
+            <th class="th-blue" rowspan="2" style="width:120px">Nama Item</th> <!-- AUTO WRAPTEXT -->
+            <th class="th-blue" colspan="3" style="width:85px">Jumlah (Qty)</th>
+            <th class="th-blue" rowspan="2" style="width:42px">Delivery Date</th>
+            <th class="th-blue" rowspan="2" style="width:115px">Keperluan</th> <!-- DILAPANGKAN -->
+            <th class="th-blue" rowspan="2" style="width:62px">Nomor PR</th> <!-- DILAPANGKAN -->
         </tr>
         <tr>
-            <th class="th-blue" style="width:40px">Pengajuan Pembelian</th>
-            <th class="th-blue" style="width:30px">Satuan</th>
-            <th class="th-blue" style="width:35px">Stock Existing</th>
+            <th class="th-blue" style="width:32px">Pengajuan Pembelian</th>
+            <th class="th-blue" style="width:25px">Satuan</th>
+            <th class="th-blue" style="width:28px">Stock Existing</th>
         </tr>
         ${rowsHTML}
         <tr>
