@@ -34,34 +34,42 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
 .toast-box.show { opacity: 1; visibility: visible; }
 .loading { display: none; position: fixed; inset: 0; background: rgba(255, 255, 255, 0.75); z-index: 9999; justify-content: center; align-items: center; }
 
-#printAreaContainer { background: #fff; border-radius: 12px; border: 1px solid var(--border-color); padding: 1.25rem; }
-#printArea { background: #ffffff; margin: auto; width: 148mm; max-width: 100%; }
+#printAreaContainer { background: #fff; border-radius: 12px; border: 1px solid var(--border-color); padding: 1.25rem; overflow-x: auto; }
+#printArea { background: #ffffff; margin: auto; width: 148mm; min-width: 148mm; box-sizing: border-box; }
 
-/* Form A5 Presisi */
-.kobin-form-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; font-size: 8.5px; color: #000; table-layout: fixed; }
-.kobin-form-table td, .kobin-form-table th { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; word-wrap: break-word; overflow-wrap: break-word; }
-.kobin-form-table .logo-cell { width: 85px; text-align: center; padding: 2px !important; }
-.kobin-form-table .logo-cell img { max-width: 75px; height: auto; display: block; margin: auto; }
-.kobin-form-table .title-cell { text-align: center; font-size: 11px; font-weight: 700; }
-.kobin-form-table .meta-cell { width: 125px; font-size: 7.5px; font-weight: 600; padding: 0 !important; }
+/* Form A5 Presisi & Rapih */
+.kobin-form-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; font-size: 8px; color: #000; table-layout: fixed; }
+.kobin-form-table td, .kobin-form-table th { border: 1px solid #000; padding: 3px 4px; vertical-align: middle; word-break: break-word; overflow-wrap: break-word; }
+.kobin-form-table .logo-cell { width: 75px; text-align: center; padding: 2px !important; vertical-align: middle; }
+.kobin-form-table .logo-cell img { max-width: 65px; max-height: 45px; height: auto; width: auto; display: block; margin: auto; object-fit: contain; }
+.kobin-form-table .title-cell { text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+.kobin-form-table .meta-cell { width: 120px; font-size: 7.5px; font-weight: 600; padding: 0 !important; }
 .meta-inner-table { width: 100%; border-collapse: collapse; }
-.meta-inner-table td { border: none; border-bottom: 1px solid #000; padding: 1.5px 3px; text-align: right; }
+.meta-inner-table td { border: none; border-bottom: 1px solid #000; padding: 1.5px 3px; text-align: left; }
 .meta-inner-table tr:last-child td { border-bottom: none; }
-.info-clean-cell { border-top: none !important; border-bottom: 1px solid #000 !important; border-left: none !important; border-right: none !important; font-weight: 700; font-size: 8.5px; padding: 2px 4px !important; }
-.check-cell { font-weight: 700; font-size: 8.5px; border-top: none !important; border-bottom: 1px solid #000 !important; border-left: none !important; border-right: none !important; }
-.checkbox-box { display: inline-block; width: 10px; height: 10px; border: 1px solid #000; margin-right: 3px; text-align: center; line-height: 7px; font-size: 7px; }
-.kobin-form-table th.th-blue { background-color: #bdd7ee !important; text-align: center; font-weight: 700; font-size: 8px; }
-.sig-container-td { border: none !important; padding: 0 !important; }
+.info-clean-cell { border-top: 1px solid #000 !important; border-bottom: 1px solid #000 !important; border-left: none !important; border-right: none !important; font-weight: 700; font-size: 8px; padding: 3px 5px !important; }
+.check-cell { font-weight: 700; font-size: 8px; border-top: 1px solid #000 !important; border-bottom: 1px solid #000 !important; border-left: 1px solid #000 !important; border-right: none !important; vertical-align: middle !important; padding: 3px 6px !important; }
+.checkbox-box { display: inline-flex; align-items: center; justify-content: center; width: 11px; height: 11px; border: 1px solid #000; margin-right: 4px; font-size: 8px; line-height: 1; vertical-align: middle; }
+.kobin-form-table th.th-blue { background-color: #bdd7ee !important; text-align: center; font-weight: 700; font-size: 7.5px; padding: 3px 1px; }
+
+/* Fixed row heights & text alignment for table body */
+.kobin-form-table tbody tr { height: 18px; }
+.kobin-form-table tbody td { font-size: 8px; line-height: 1.15; padding: 2px 3px; }
+
+.sig-container-td { border-top: 1px solid #000 !important; border-bottom: none !important; border-left: none !important; border-right: none !important; padding: 0 !important; }
 .sig-table-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .sig-table-grid td { border: none !important; text-align: center; padding: 2px 1px; }
 .sig-title-text, .sig-name-text, .sig-role-text { font-weight: 700; text-align: center; }
-.sig-title-text { font-size: 8px; } .sig-space-height { height: 30px; } .sig-name-text { font-size: 8px; } .sig-role-text { font-size: 7.5px; }
-.note-cell { font-size: 7px; font-style: italic; font-weight: 600; padding: 4px !important; border: none !important; }
+.sig-title-text { font-size: 7.5px; } 
+.sig-space-height { height: 28px; } 
+.sig-name-text { font-size: 7.5px; } 
+.sig-role-text { font-size: 7px; }
+.note-cell { font-size: 6.5px; font-style: italic; font-weight: 600; padding: 3px 5px !important; border: none !important; line-height: 1.2; }
 
 @media print {
     body { background: #fff; padding: 0; }
     .app-header, .card-custom, .toast-box, .loading, #printAreaContainer h5, #printAreaContainer .text-muted { display: none !important; }
-    #printAreaContainer { border: none; padding: 0; }
+    #printAreaContainer { border: none; padding: 0; overflow: visible; }
     #printArea { width: 100%; margin: 0; padding: 0; }
     .kobin-form-table { width: 100%; border: 1.5px solid #000; }
     @page { size: A5 portrait; margin: 4mm; }
@@ -472,13 +480,13 @@ function renderPreview(){
             if (hasData || i < rows.length - 1 || rows.length === 1) {
                 rowsHTML += `<tr>
                     <td style="text-align:center">${i+1}</td>
-                    <td style="text-align:center;">${kodeVal}</td>
-                    <td>${namaVal}</td>
+                    <td style="text-align:center; font-weight:600;">${kodeVal}</td>
+                    <td style="text-align:left;">${namaVal}</td>
                     <td style="text-align:center">${qtyVal}</td>
                     <td style="text-align:center">${satuanVal}</td>
                     <td style="text-align:center">${stockVal}</td>
                     <td style="text-align:center">${deliveryVal}</td>
-                    <td>${keperluanVal}</td>
+                    <td style="text-align:left;">${keperluanVal}</td>
                     <td style="text-align:center">${prVal}</td>
                 </tr>`;
             } else {
@@ -493,6 +501,17 @@ function renderPreview(){
 
     printArea.innerHTML = `
     <table class="kobin-form-table">
+        <colgroup>
+            <col style="width: 22px;">  <!-- No -->
+            <col style="width: 68px;">  <!-- Kode Item -->
+            <col style="width: 175px;"> <!-- Nama Item -->
+            <col style="width: 38px;">  <!-- Qty -->
+            <col style="width: 38px;">  <!-- Satuan -->
+            <col style="width: 42px;">  <!-- Stock Existing -->
+            <col style="width: 52px;">  <!-- Delivery Date -->
+            <col style="width: 75px;">  <!-- Keperluan -->
+            <col style="width: 48px;">  <!-- Nomor PR -->
+        </colgroup>
         <tr>
             <td colspan="2" class="logo-cell" rowspan="2"><img src="${GITHUB_LOGO_URL}" alt="KOBINTILES" crossorigin="anonymous" onerror="this.onerror=null; this.alt='KOBINTILES';"></td>
             <td colspan="5" class="title-cell" rowspan="2">FORMULIR PENGAJUAN PEMBELIAN</td>
@@ -508,29 +527,29 @@ function renderPreview(){
         <tr>
             <td class="info-clean-cell" colspan="7">
                 <table style="width:100%; border:none;">
-                    <tr><td style="width:90px; border:none;">Tanggal</td><td style="border:none;">: ${tglHeader}</td></tr>
-                    <tr><td style="border:none;">Nama Departemen</td><td style="border:none;">: ${dept}</td></tr>
-                    <tr><td style="border:none;">Nomor</td><td style="border:none;">: ${nomor}</td></tr>
+                    <tr><td style="width:85px; border:none; padding:1px 0;">Tanggal</td><td style="border:none; padding:1px 0;">: ${tglHeader}</td></tr>
+                    <tr><td style="border:none; padding:1px 0;">Nama Departemen</td><td style="border:none; padding:1px 0;">: ${dept}</td></tr>
+                    <tr><td style="border:none; padding:1px 0;">Nomor</td><td style="border:none; padding:1px 0;">: ${nomor}</td></tr>
                 </table>
             </td>
-            <td class="check-cell" colspan="2" style="vertical-align:top; padding-top:4px !important;">
-                <div><span class="checkbox-box">${jenis==='CAPEX'?'&#10003;':''}</span> CAPEX</div>
-                <div style="margin-top:3px;"><span class="checkbox-box">${jenis==='OPEX'?'&#10003;':''}</span> OPEX</div>
+            <td class="check-cell" colspan="2">
+                <div style="display:flex; align-items:center; margin-bottom:2px;"><span class="checkbox-box">${jenis==='CAPEX'?'&#10003;':''}</span> CAPEX</div>
+                <div style="display:flex; align-items:center;"><span class="checkbox-box">${jenis==='OPEX'?'&#10003;':''}</span> OPEX</div>
             </td>
         </tr>
         <tr>
-            <th class="th-blue" rowspan="2" style="width:25px">No.</th>
-            <th class="th-blue" rowspan="2" style="width:75px">Kode Item</th>
-            <th class="th-blue" rowspan="2" style="width:190px">Nama Item</th>
-            <th class="th-blue" colspan="3" style="width:105px">Jumlah (Qty)</th>
-            <th class="th-blue" rowspan="2" style="width:50px">Delivery Date</th>
-            <th class="th-blue" rowspan="2" style="width:95px">Keperluan</th>
-            <th class="th-blue" rowspan="2" style="width:50px">Nomor PR</th>
+            <th class="th-blue" rowspan="2">No.</th>
+            <th class="th-blue" rowspan="2">Kode Item</th>
+            <th class="th-blue" rowspan="2">Nama Item</th>
+            <th class="th-blue" colspan="3">Jumlah (Qty)</th>
+            <th class="th-blue" rowspan="2">Delivery Date</th>
+            <th class="th-blue" rowspan="2">Keperluan</th>
+            <th class="th-blue" rowspan="2">Nomor PR</th>
         </tr>
         <tr>
-            <th class="th-blue" style="width:35px">Pengajuan Pembelian</th>
-            <th class="th-blue" style="width:35px">Satuan</th>
-            <th class="th-blue" style="width:35px">Stock Existing</th>
+            <th class="th-blue">Pengajuan Pembelian</th>
+            <th class="th-blue">Satuan</th>
+            <th class="th-blue">Stock Existing</th>
         </tr>
         ${rowsHTML}
         <tr>
