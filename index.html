@@ -222,11 +222,13 @@ async function fetchGoogleSheetsMaster() {
 
         masterData.forEach(item => {
             if (item.kode || item.nama) {
+                // Option berdasarkan Kode
                 const optKode = document.createElement("option");
                 optKode.value = item.kode;
                 optKode.label = `[${item.kode}] - ${item.nama} (${item.satuan})`;
                 datalist.appendChild(optKode);
 
+                // Option berdasarkan Nama
                 if (item.nama && item.nama !== item.kode) {
                     const optNama = document.createElement("option");
                     optNama.value = item.nama;
@@ -287,6 +289,7 @@ function formatTanggalIndo(dateStr){
     
     return `${tgl}/${bln}/${thn}`;
 }
+
 function escapeHTML(s){ return !s ? "" : s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
 function createRow(no){
