@@ -193,8 +193,15 @@ function showLoading(){ loading.style.display="flex"; }
 function hideLoading(){ loading.style.display="none"; }
 
 // --- GENERATE NOMOR AUTOMATIS ---
+// --- GENERATE NOMOR OTOMATIS (ENGINEERING -> ENG) ---
 async function generateAutoNumber() {
-    const dept = document.getElementById("departemen").value.trim() || "ENG";
+    let dept = document.getElementById("departemen").value.trim().toUpperCase() || "ENG";
+    
+    // Singkat ENGINEERING menjadi ENG untuk format Nomor
+    if (dept === "ENGINEERING") {
+        dept = "ENG";
+    }
+
     try {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getNewNo&dept=${encodeURIComponent(dept)}`);
         const data = await res.json();
@@ -203,12 +210,13 @@ async function generateAutoNumber() {
             renderPreview();
         }
     } catch(e) {
-        document.getElementById("nomor").value = `${dept} / 07 - 26 / 001`;
+        const now = new Date();
+        const bln = String(now.getMonth() + 1).padStart(2, '0');
+        const thn = String(now.getFullYear()).slice(-2);
+        document.getElementById("nomor").value = `${dept} / ${bln} - ${thn} / 001`;
+        renderPreview();
     }
 }
-document.getElementById("btnGenNo").addEventListener("click", generateAutoNumber);
-document.getElementById("departemen").addEventListener("change", generateAutoNumber);
-
 // --- FETCH MASTER DATA ---
 async function fetchGoogleSheetsMaster() {
     if(!APPS_SCRIPT_URL) return;
