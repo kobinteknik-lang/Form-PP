@@ -13,7 +13,6 @@
     <!-- Export Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
 :root { --primary-color: #1e3a8a; --bg-surface: #f8fafc; --card-bg: #ffffff; --border-color: #e2e8f0; --text-main: #0f172a; }
@@ -93,7 +92,13 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
         <div class="row g-3 mb-4">
             <div class="col-md-3"><label class="form-label">Tanggal</label><input type="date" id="tanggal" class="form-control"></div>
             <div class="col-md-3"><label class="form-label">Nama Departemen</label><input type="text" id="departemen" class="form-control" value="ENGINEERING"></div>
-            <div class="col-md-3"><label class="form-label">Nomor Pengajuan</label><input type="text" id="nomor" class="form-control" value="ENG / 07 - 26 / "></div>
+            <div class="col-md-3">
+                <label class="form-label">Nomor Pengajuan (Auto)</label>
+                <div class="input-group">
+                    <input type="text" id="nomor" class="form-control" value="Memuat No...">
+                    <button class="btn btn-outline-secondary" type="button" id="btnGenNo"><i class="bi bi-arrow-clockwise"></i></button>
+                </div>
+            </div>
             <div class="col-md-3">
                 <label class="form-label">Jenis Pengajuan</label>
                 <select id="jenis" class="form-select"><option value="OPEX">OPEX</option><option value="CAPEX">CAPEX</option></select>
@@ -152,7 +157,7 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
         </div>
 
         <div class="pt-3 border-top btn-action-group">
-            <button type="button" id="preview" class="btn btn-primary btn-modern"><i class="bi bi-arrow-repeat"></i> Preview</button>
+            <button type="button" id="btnSaveSheet" class="btn btn-primary btn-modern"><i class="bi bi-cloud-arrow-up-fill"></i> Simpan Ke Sheet</button>
             <button type="button" id="btnPDF" class="btn btn-danger btn-modern"><i class="bi bi-file-earmark-pdf-fill"></i> Export PDF</button>
             <button type="button" id="btnExcel" class="btn btn-success btn-modern"><i class="bi bi-file-earmark-excel-fill"></i> Export Excel</button>
             <button type="button" onclick="window.print()" class="btn btn-secondary btn-modern"><i class="bi bi-printer-fill"></i> Cetak A5</button>
@@ -168,9 +173,6 @@ body { background-color: var(--bg-surface); color: var(--text-main); font-family
 </main>
 
 <script>
-// =========================================================================
-// PASTE URL APPS SCRIPT WEB APP ANDA DI SINI (BERAKHIRAN /exec)
-// =========================================================================
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyhsjbOK85KMTcqnREHYwEjPYo-97ZoNhfrp2g825Nq3BeaXkiPX-4Zf4KAYSYXQtCe/exec";
 const GITHUB_LOGO_URL = "https://raw.githubusercontent.com/kobinteknik-lang/Form-PP/main/logo.png";
 
@@ -178,7 +180,6 @@ let masterData = [];
 
 const tableBody = document.querySelector("#itemTable tbody");
 const addRowBtn = document.getElementById("addRow");
-const previewBtn = document.getElementById("preview");
 const printArea = document.getElementById("printArea");
 const toast = document.getElementById("toast");
 const loading = document.getElementById("loading");
@@ -191,13 +192,26 @@ function showToast(m){ toast.innerHTML=m; toast.classList.add("show"); setTimeou
 function showLoading(){ loading.style.display="flex"; }
 function hideLoading(){ loading.style.display="none"; }
 
-// Fetch Master Items via Apps Script JSON API
-async function fetchGoogleSheetsMaster() {
-    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("PASANG_URL")) {
-        sheetStatus.className = "badge bg-secondary text-white px-3 py-2 rounded-pill";
-        sheetStatus.innerHTML = "<i class=\"bi bi-exclamation-circle me-1\"></i>URL Apps Script Belum Diisi";
-        return;
+// --- GENERATE NOMOR AUTOMATIS ---
+async function generateAutoNumber() {
+    const dept = document.getElementById("departemen").value.trim() || "ENG";
+    try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getNewNo&dept=${encodeURIComponent(dept)}`);
+        const data = await res.json();
+        if(data.status === "success") {
+            document.getElementById("nomor").value = data.nextNo;
+            renderPreview();
+        }
+    } catch(e) {
+        document.getElementById("nomor").value = `${dept} / 07 - 26 / 001`;
     }
+}
+document.getElementById("btnGenNo").addEventListener("click", generateAutoNumber);
+document.getElementById("departemen").addEventListener("change", generateAutoNumber);
+
+// --- FETCH MASTER DATA ---
+async function fetchGoogleSheetsMaster() {
+    if(!APPS_SCRIPT_URL) return;
 
     try {
         const response = await fetch(APPS_SCRIPT_URL);
@@ -208,13 +222,11 @@ async function fetchGoogleSheetsMaster() {
 
         masterData.forEach(item => {
             if (item.kode || item.nama) {
-                // Option berdasarkan Kode
                 const optKode = document.createElement("option");
                 optKode.value = item.kode;
                 optKode.label = `[${item.kode}] - ${item.nama} (${item.satuan})`;
                 datalist.appendChild(optKode);
 
-                // Option berdasarkan Nama (untuk pencarian lewat nama)
                 if (item.nama && item.nama !== item.kode) {
                     const optNama = document.createElement("option");
                     optNama.value = item.nama;
@@ -226,15 +238,13 @@ async function fetchGoogleSheetsMaster() {
 
         sheetStatus.className = "badge bg-success text-white px-3 py-2 rounded-pill";
         sheetStatus.innerHTML = `<i class="bi bi-shield-check me-1"></i>Secure API Connected (${masterData.length} Items)`;
-        showToast(`Berhasil memuat ${masterData.length} data via API privat!`);
     } catch (err) {
-        console.error(err);
         sheetStatus.className = "badge bg-danger text-white px-3 py-2 rounded-pill";
         sheetStatus.innerHTML = "<i class=\"bi bi-x-circle-fill me-1\"></i>Gagal Load API";
     }
 }
 
-// Otomatisasi Input & Fitur Pencarian (Berdasarkan Kode atau Nama)
+// --- OTOMATISASI SEARCH & ROW ---
 tableBody.addEventListener("input", e => {
     const isKode = e.target.classList.contains("kode");
     const isNama = e.target.classList.contains("nama");
@@ -242,10 +252,8 @@ tableBody.addEventListener("input", e => {
     if (isKode || isNama) {
         const val = e.target.value.trim().toLowerCase();
         const row = e.target.closest("tr");
-        
         if (!val) return;
 
-        // Cari item berdasarkan Kode atau Nama (Case-Insensitive)
         const found = masterData.find(item => 
             (item.kode && item.kode.toLowerCase() === val) || 
             (item.nama && item.nama.toLowerCase() === val)
@@ -259,7 +267,6 @@ tableBody.addEventListener("input", e => {
         }
     }
 
-    // Auto-Add Row saat mengisi baris paling bawah
     const row = e.target.closest("tr");
     if (row && row === tableBody.lastElementChild && e.target.value.trim() !== "") {
         tableBody.insertAdjacentHTML("beforeend", createRow(tableBody.rows.length + 1));
@@ -299,7 +306,6 @@ tableBody.addEventListener("click", e=>{
     const btn = e.target.closest(".hapus");
     if(!btn) return;
     if(tableBody.rows.length === 1){ 
-        // Reset baris pertama jika tinggal 1
         const inputs = tableBody.rows[0].querySelectorAll("input");
         inputs.forEach(i => i.value = (i.classList.contains("qty") ? "1" : ""));
         renderPreview();
@@ -310,14 +316,11 @@ tableBody.addEventListener("click", e=>{
     renderPreview();
 });
 
-// Fitur Reset Form
 document.getElementById("btnReset").addEventListener("click", () => {
     if (confirm("Apakah Anda yakin ingin mengosongkan seluruh isi form?")) {
         document.getElementById("tanggal").valueAsDate = new Date();
         document.getElementById("departemen").value = "ENGINEERING";
-        document.getElementById("nomor").value = "ENG / 07 - 26 / ";
         document.getElementById("jenis").value = "OPEX";
-        
         document.getElementById("user").value = "";
         document.getElementById("gudang").value = "";
         document.getElementById("kepala").value = "";
@@ -325,8 +328,66 @@ document.getElementById("btnReset").addEventListener("click", () => {
         document.getElementById("gm").value = "";
 
         tableBody.innerHTML = createRow(1);
-        renderPreview();
+        generateAutoNumber();
         showToast("Form berhasil di-reset.");
+    }
+});
+
+// --- SIMPAN DATA KE GOOGLE SHEETS VIA POST ---
+document.getElementById("btnSaveSheet").addEventListener("click", async () => {
+    const items = [];
+    [...tableBody.rows].forEach(row => {
+        const kode = row.querySelector(".kode").value.trim();
+        const nama = row.querySelector(".nama").value.trim();
+        if (kode || nama) {
+            items.push({
+                kode: kode,
+                nama: nama,
+                qty: row.querySelector(".qty").value,
+                satuan: row.querySelector(".satuan").value,
+                stock: row.querySelector(".stock").value,
+                delivery: row.querySelector(".delivery").value,
+                keperluan: row.querySelector(".keperluan").value,
+                pr: row.querySelector(".pr").value
+            });
+        }
+    });
+
+    if (items.length === 0) {
+        alert("Isi setidaknya 1 item barang sebelum menyimpan!");
+        return;
+    }
+
+    const payload = {
+        tanggal: document.getElementById("tanggal").value,
+        departemen: document.getElementById("departemen").value,
+        nomor: document.getElementById("nomor").value,
+        jenis: document.getElementById("jenis").value,
+        user: document.getElementById("user").value,
+        gudang: document.getElementById("gudang").value,
+        kepala: document.getElementById("kepala").value,
+        fam: document.getElementById("fam").value,
+        gm: document.getElementById("gm").value,
+        items: items
+    };
+
+    showLoading();
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+        const resData = await response.json();
+        if (resData.status === "success") {
+            showToast("✅ Berhasil disimpan ke Google Sheets!");
+            generateAutoNumber(); // Refresh nomor otomatis untuk transaksi berikutnya
+        } else {
+            alert("Gagal simpan: " + resData.message);
+        }
+    } catch (e) {
+        alert("Terjadi kesalahan jaringan/CORS.");
+    } finally {
+        hideLoading();
     }
 });
 
@@ -358,7 +419,6 @@ function renderPreview(){
             const keperluanVal = escapeHTML(r.querySelector(".keperluan").value);
             const prVal = escapeHTML(r.querySelector(".pr").value);
 
-            // Hanya tampilkan jika setidaknya ada 1 field yang diisi
             const hasData = kodeVal || namaVal || satuanVal || keperluanVal || prVal;
 
             if (hasData || i < rows.length - 1 || rows.length === 1) {
@@ -463,12 +523,11 @@ function renderPreview(){
     </table>`;
 }
 
-previewBtn.addEventListener("click", ()=>{ showLoading(); setTimeout(()=>{ renderPreview(); hideLoading(); showToast("Preview diperbarui."); },200); });
 document.addEventListener("input", (e)=>{ if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') renderPreview(); });
 
-// Load Master Data via API
+// Inisialisasi awal
 fetchGoogleSheetsMaster();
-renderPreview();
+generateAutoNumber();
 
 // Export PDF & Excel
 document.getElementById("btnPDF").addEventListener("click", async ()=>{
